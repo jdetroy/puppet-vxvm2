@@ -13,9 +13,9 @@ Puppet::Type.type(:vxvm_disk).provide(:vxvm) do
     end
 
     def exists?
-        vxdisk('list',@resource[:name])
-    rescue Puppet::ExecutionFailure
-        false
+        out=vxdisk('list', @resource[:name])
+	words = ['format=cdsdisk']
+	words.any? { |w| out[w] }	
     end
 
 end

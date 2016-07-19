@@ -3,32 +3,31 @@ Puppet::Type.type(:vxvm_volume).provide :vxvm do
     desc "Manages VXVM volumes"
 
     commands :vxassist  => 'vxassist',
-             :lvremove  => 'lvremove',
-             :lvextend  => 'lvextend',
-             :lvs       => 'lvs',
-             :resize2fs => 'resize2fs',
-             :umount    => 'umount',
-             :blkid     => 'blkid',
-             :dmsetup   => 'dmsetup'
+             :vxinfo => 'vxinfo',
+             :vxprint => 'vxprint',
+             :vxresize => 'vxresize',
+             :umount  => 'umount',
+             :blkid   => 'blkid',
+             :vxvol   => 'vxvol'
 
     def create
-        args = ['-n', @resource[:name]]
-        if @resource[:size]
-            args.push('--size', @resource[:size])
-        elsif @resource[:initial_size]
-            args.push('--size', @resource[:initial_size])
-        end
-        args << @resource[:disk_group]
-        lvcreate(*args)
+		  args = ['-g', @resource[:vxvm_diskgroup], 'make', @resource[:name]]
+      if @resource[:size]
+        args.push( @resource[:size])
+      end
+			if @resource[:type]
+				args.push( "layout=#{@resource[:type]}")
+			end
+      vxassist(*args)
     end
 
     def destroy
-        dmsetup('remove', "#{@resource[:disk_group]}-#{@resource[:name]}")
-        lvremove('-f', path)
+       vxvol('stop', @resource[:name])
+       vxassist('remove', 'volume', @resource[:name])
     end
 
     def exists?
-        lvs(@resource[:vxvm_diskgroup]) =~ lvs_pattern
+       vxinfo('-g', @resource[:vxvm_diskgroup]) =~ vxvol_pattern
     end
 
     def size
@@ -36,7 +35,7 @@ Puppet::Type.type(:vxvm_volume).provide :vxvm do
             unit = $1.downcase
         end
 
-        raw = lvs('--noheading', '--unit', unit, path)
+        raw = vxprint('-g', @resource[:vxvm_diskgroup], '-v', @resource[:name], '-u', unit, '-F  "%{name} - %{len}"')
 
         if raw =~ /\s+(\d+)\.(\d+)#{unit}/i
             if $2.to_i == 00
@@ -48,35 +47,35 @@ Puppet::Type.type(:vxvm_volume).provide :vxvm do
     end
 
     def size=(new_size)
-        lvm_size_units = { "K" => 1, "M" => 1024, "G" => 1048576, "T" => 1073741824, "P" => 1099511627776, "E" => 1125899906842624 }
-        lvm_size_units_match = lvm_size_units.keys().join('|')
+        vxvm_size_units = { "K" => 1, "M" => 1024, "G" => 1048576, "T" => 1073741824, "P" => 1099511627776, "E" => 1125899906842624 }
+        vxvm_size_units_match = vxvm_size_units.keys().join('|')
 
         resizeable = false
         current_size = size()
 
-        if current_size =~ /(\d+\.{0,1}\d{0,2})(#{lvm_size_units_match})/i
+        if current_size =~ /(\d+\.{0,1}\d{0,2})(#{vxvm_size_units_match})/i
             current_size_bytes = $1.to_i
             current_size_unit  = $2.upcase
         end
 
-        if new_size =~ /(\d+)(#{lvm_size_units_match})/i
+        if new_size =~ /(\d+)(#{vxvm_size_units_match})/i
             new_size_bytes = $1.to_i
             new_size_unit  = $2.upcase
         end
 
-        ## Get the extend size
-        if lvs('--noheading', '-o', 'vg_extent_size', '--units', 'k', path) =~ /\s+(\d+)\.\d+k/i
-            vg_extent_size = $1.to_i
-        end
+        ## Get the extend size from LVM module
+        #if lvs('--noheading', '-o', 'vg_extent_size', '--units', 'k', path) =~ /\s+(\d+)\.\d+k/i
+        #    vg_extent_size = $1.to_i
+        #end
 
-        ## Verify that it's a extension: Reduce is potentially dangerous and should be done manually
-        if lvm_size_units[current_size_unit] < lvm_size_units[new_size_unit]
+        ## Verify that it's an extension: Reduce is potentially dangerous and should be done manually
+        if vxvm_size_units[current_size_unit] < vxvm_size_units[new_size_unit]
             resizeable = true
-        elsif lvm_size_units[current_size_unit] > lvm_size_units[new_size_unit]
-            if (current_size_bytes / lvm_size_units[current_size_unit]) < (new_size_bytes / lvm_size_units[new_size_unit])
+        elsif vxvm_size_units[current_size_unit] > vxvm_size_units[new_size_unit]
+            if (current_size_bytes / vxvm_size_units[current_size_unit]) < (new_size_bytes / vxvm_size_units[new_size_unit])
                 resizeable = true
             end
-        elsif lvm_size_units[current_size_unit] == lvm_size_units[new_size_unit]
+        elsif vxvm_size_units[current_size_unit] == vxvm_size_units[new_size_unit]
             if new_size_bytes > current_size_bytes
                 resizeable = true
             end
@@ -85,28 +84,31 @@ Puppet::Type.type(:vxvm_volume).provide :vxvm do
         if not resizeable
             fail( "Decreasing the size requires manual intervention (#{size} < #{current_size})" )
         else
-            ## Check if new size fits the extend blocks
-            if new_size_bytes * lvm_size_units[new_size_unit] % vg_extent_size != 0
-                fail( "Cannot extend to size #{size} because VG extent size is #{vg_extent_size} KB" )
-            end
+            ## Check if new size fits the extend blocks - from LVM module
+            #if new_size_bytes * vxvm_size_units[new_size_unit] % vg_extent_size != 0
+            #    fail( "Cannot extend to size #{size} because VG extent size is #{vg_extent_size} KB" )
+            #end
+					# check max volume size on diskgroup
+					#vxassist -g @resource[:vxvm_diskgroup] maxsize
 
-            lvextend( '-L', new_size, path) || fail( "Cannot extend to size #{size} because lvextend failed." )
+            vxresize('-F','vxfs','-g',@resource[:vxvm_diskgroup], size ) || fail( "Cannot resize file system to size #{size} because vxresize failed." )
+            #vxassist( '-g',@resource[:vxvm_diskgroup], 'growto', '-L', ,@resource[:name], new_size, ) || fail( "Cannot extend to size #{size} because vxassist failed." )
 
-            if /TYPE=\"(\S+)\"/.match(blkid(path)) {|m| m =~ /ext[34]/}
-              resize2fs( path) || fail( "Cannot resize file system to size #{size} because resize2fs failed." )
-            end
+            #if /TYPE=\"(\S+)\"/.match(blkid(path)) {|m| m =~ /ext[34]/}
+            #  vxresize('-F','vxfs','-g',@resource[:vxvm_diskgroup], size ) || fail( "Cannot resize file system to size #{size} because vxresize failed." )
+            #end
 
         end
     end
 
     private
 
-    def lvs_pattern
+    def vxvol_pattern
         /\s+#{Regexp.quote @resource[:name]}\s+/
     end
 
     def path
-        "/dev/#{@resource[:vxvm_diskgroup]}/#{@resource[:name]}"
+        "/dev/vx/dsk/#{@resource[:vxvm_diskgroup]}/#{@resource[:name]}"
     end
 
 end

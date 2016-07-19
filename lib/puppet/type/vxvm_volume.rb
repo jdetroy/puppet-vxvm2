@@ -26,4 +26,10 @@ Puppet::Type.newtype(:vxvm_volume) do
             end
         end
     end
+
+		newparam(:type) do
+			desc "The type of volume: stripe/concat/mirror "
+			defaultto :concat
+			newvalues(:concat, :stripe, :mirror)
+		end
 end

@@ -5,10 +5,10 @@ Puppet::Type.newtype(:vxvm_disk) do
 
     newparam(:name) do
         isnamevar
-        validate do |value|
-            unless Pathname.new(value).absolute?
-                raise ArgumentError, "VXVM disk names must be fully qualified"
-            end
-        end
+        #validate do |value|
+        #    unless Pathname.new(value).relative?
+        #        raise ArgumentError, "VXVM disk names must be not fully qualified"
+        #    end
+        #end
     end
 end
