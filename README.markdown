@@ -35,10 +35,11 @@ Here's a simple working example:
     vxvm2_volume { "my_fs":
         ensure => present,
         vxvm2_diskgroup => "my_dg",
-	vxvm2_disk  => ['vmdk1'],
-  	type  => concat,
+        vxvm2_disk  => ['vmdk1'],
+        type  => concat,
         size => "20G"
     }
+
 
 =======
 
