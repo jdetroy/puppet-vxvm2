@@ -1,4 +1,4 @@
-Puppet::Type.newtype(:vxvm_filesystem) do
+Puppet::Type.newtype(:vxvm2_filesystem) do
     ensurable
 
     newparam(:name) do

@@ -1,4 +1,4 @@
-Puppet::Type.type(:vxvm_disk).provide(:vxvm) do
+Puppet::Type.type(:vxvm2_disk).provide(:vxvm2) do
     confine :osfamily  => 'redhat'
     desc "Manages VXVM disks"
 

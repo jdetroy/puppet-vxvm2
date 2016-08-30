@@ -1,6 +1,6 @@
 require 'pathname'
 
-Puppet::Type.newtype(:vxvm_disk) do
+Puppet::Type.newtype(:vxvm2_disk) do
     ensurable
 
     newparam(:name) do
@@ -11,4 +11,9 @@ Puppet::Type.newtype(:vxvm_disk) do
         #    end
         #end
     end
+
+		#newparam(:diskname) do
+		#	desc "Name given to the device"
+		#end
+
 end

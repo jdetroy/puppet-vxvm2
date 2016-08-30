@@ -1,4 +1,4 @@
-Puppet::Type.type(:vxvm_volume).provide :vxvm do
+Puppet::Type.type(:vxvm2_volume).provide :vxvm2 do
     confine :osfamily  => 'redhat'
     desc "Manages VXVM volumes"
 
@@ -11,12 +11,15 @@ Puppet::Type.type(:vxvm_volume).provide :vxvm do
              :vxvol   => 'vxvol'
 
     def create
-		  args = ['-g', @resource[:vxvm_diskgroup], 'make', @resource[:name]]
+		  args = ['-g', @resource[:vxvm2_diskgroup], 'make', @resource[:name]]
       if @resource[:size]
         args.push( @resource[:size])
       end
 			if @resource[:type]
 				args.push( "layout=#{@resource[:type]}")
+			end
+			if @resource[:vxvm2_disk]
+				args.push(@resource[:vxvm2_disk])
 			end
       vxassist(*args)
     end
@@ -27,7 +30,7 @@ Puppet::Type.type(:vxvm_volume).provide :vxvm do
     end
 
     def exists?
-       vxinfo('-g', @resource[:vxvm_diskgroup]) =~ vxvol_pattern
+       vxinfo('-g', @resource[:vxvm2_diskgroup]) =~ vxvol_pattern
     end
 
     def size
@@ -35,7 +38,7 @@ Puppet::Type.type(:vxvm_volume).provide :vxvm do
             unit = $1.downcase
         end
 
-        raw = vxprint('-g', @resource[:vxvm_diskgroup], '-v', @resource[:name], '-u', unit, '-F  "%{name} - %{len}"')
+        raw = vxprint('-g', @resource[:vxvm2_diskgroup], '-v', @resource[:name], '-u', unit, '-F  "%{name} - %{len}"')
 
         if raw =~ /\s+(\d+)\.(\d+)#{unit}/i
             if $2.to_i == 00
@@ -91,7 +94,7 @@ Puppet::Type.type(:vxvm_volume).provide :vxvm do
 					# check max volume size on diskgroup
 					#vxassist -g @resource[:vxvm_diskgroup] maxsize
 
-            vxresize('-F','vxfs','-g',@resource[:vxvm_diskgroup], size ) || fail( "Cannot resize file system to size #{size} because vxresize failed." )
+            vxresize('-F','vxfs','-g',@resource[:vxvm2_diskgroup], size ) || fail( "Cannot resize file system to size #{size} because vxresize failed." )
             #vxassist( '-g',@resource[:vxvm_diskgroup], 'growto', '-L', ,@resource[:name], new_size, ) || fail( "Cannot extend to size #{size} because vxassist failed." )
 
             #if /TYPE=\"(\S+)\"/.match(blkid(path)) {|m| m =~ /ext[34]/}
@@ -104,11 +107,11 @@ Puppet::Type.type(:vxvm_volume).provide :vxvm do
     private
 
     def vxvol_pattern
-        /\s+#{Regexp.quote @resource[:name]}\s+/
+        /#{Regexp.quote @resource[:name]}/
     end
 
     def path
-        "/dev/vx/dsk/#{@resource[:vxvm_diskgroup]}/#{@resource[:name]}"
+        "/dev/vx/dsk/#{@resource[:vxvm2_diskgroup]}/#{@resource[:name]}"
     end
 
 end

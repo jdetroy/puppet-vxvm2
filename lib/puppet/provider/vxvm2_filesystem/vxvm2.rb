@@ -1,4 +1,4 @@
-Puppet::Type.type(:vxvm_filesystem).provide :vxvm do
+Puppet::Type.type(:vxvm2_filesystem).provide :vxvm2 do
     confine :osfamily  => 'redhat'
     desc "Manages VXVM filesystems"
 
@@ -7,7 +7,7 @@ Puppet::Type.type(:vxvm_filesystem).provide :vxvm do
 						 :mkfs    => 'mkfs'
 
     def create
-		  dev = '/dev/vx/rdsk/' + @resource[:vxvm_diskgroup] + '/' + @resource[:name] 
+		  dev = '/dev/vx/rdsk/' + @resource[:vxvm2_diskgroup] + '/' + @resource[:name] 
       mkfs('-F','vxfs',dev)
       #mkfs('-F','vxfs',@resource[:name])
     end
@@ -17,7 +17,7 @@ Puppet::Type.type(:vxvm_filesystem).provide :vxvm do
     end
 
     def exists?
-		  #dev = '/dev/vx/rdsk/' + @resource[:vxvm_diskgroup] + '/' + @resource[:name] 
+		  #dev = '/dev/vx/rdsk/' + @resource[:vxvm2_diskgroup] + '/' + @resource[:name] 
       vxprint('-qv', @resource[:name]) 
     end
 

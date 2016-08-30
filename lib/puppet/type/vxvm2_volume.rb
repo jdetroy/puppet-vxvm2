@@ -1,4 +1,4 @@
-Puppet::Type.newtype(:vxvm_volume) do
+Puppet::Type.newtype(:vxvm2_volume) do
     ensurable
 
     newparam(:name) do
@@ -12,7 +12,7 @@ Puppet::Type.newtype(:vxvm_volume) do
         end
     end
 
-    newparam(:vxvm_diskgroup) do
+    newparam(:vxvm2_diskgroup) do
         desc "The VXVM diskgroup name associated with this VXVM volume.  This will automatically
             set this diskgroup as a dependency, but it must be defined elsewhere using the
             vxvm_diskgroup type."
@@ -32,4 +32,8 @@ Puppet::Type.newtype(:vxvm_volume) do
 			defaultto :concat
 			newvalues(:concat, :stripe, :mirror)
 		end
+
+		 newparam(:vxvm2_disk) do
+			 desc "The VXVM disk within the given VXVM diskgroup on which this volume is to be created"
+		 end
 end
