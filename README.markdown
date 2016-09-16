@@ -7,20 +7,22 @@ History
 -------
 2016-08-30 : jdetroy
 
-  * Version 0.1 : 
+  * Version 0.1 : initial release
+
+  * Version 0.2: added vxvm2_filesystem type/provider
 
 
 
 Usage
 -----
 
-This module provides three resource types (and associated providers):
-`vxvm2_disk`, `vxvm2_diskgroup` and `vxvm2_volume`.
+This module provides four resource types (and associated providers):
+`vxvm2_disk`, `vxvm2_diskgroup`, `vxvm2_volume` and `vxvm2_filesystem`.
 
 The basic dependency graph needed to define a working Veritas volume
 looks something like:
 
-    vxvm2_volume -> vxvm2_diskgroup -> vxvm2_disk(s)
+    vxvm2_volume -> vxvm2_diskgroup -> vxvm2_disk(s) -> vxvm2_filesystem
 
 Here's a simple working example:
 
@@ -39,6 +41,12 @@ Here's a simple working example:
         type  => concat,
         size => "20G"
     }
+
+   vxvm2_filesystem { "my_dg/my_fs":
+	ensure => present,
+	options => 'bsize=8192,largefiles'
+   }
+
 
 
 =======
