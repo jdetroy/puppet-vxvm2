@@ -2,10 +2,10 @@ Puppet::Type.type(:vxvm2_filesystem).provide :vxvm2 do
     confine :osfamily  => 'redhat'
     desc "Manages VXVM filesystems"
 
-    commands :vxprint  => 'vxprint',
-             :vxinfo => 'vxinfo',
-						 :mkfs    => 'mkfs',
-						 :fstyp  => 'fstyp'
+    commands :vxprint  => '/sbin/vxprint',
+             :vxinfo => '/usr/sbin/vxinfo',
+						 :mkfs    => '/sbin/mkfs',
+						 :fstyp  => '/opt/VRTS/bin/fstyp'
 
     def create
 		  dev = '/dev/vx/rdsk/' +  @resource[:name] 

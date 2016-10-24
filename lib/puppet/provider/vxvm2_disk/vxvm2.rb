@@ -2,7 +2,7 @@ Puppet::Type.type(:vxvm2_disk).provide(:vxvm2) do
     confine :osfamily  => 'redhat'
     desc "Manages VXVM disks"
 
-    commands :vxdisksetup  => 'vxdisksetup', :vxdiskunsetup => 'vxdiskunsetup', :vxdisk => 'vxdisk'
+    commands :vxdisksetup  => '/opt/VRTS/bin/vxdisksetup', :vxdiskunsetup => '/opt/VRTS/bin/vxdiskunsetup', :vxdisk => '/sbin/vxdisk'
 
     def create
         vxdisksetup('-i',@resource[:name])

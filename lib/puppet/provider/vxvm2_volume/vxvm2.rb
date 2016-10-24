@@ -2,13 +2,13 @@ Puppet::Type.type(:vxvm2_volume).provide :vxvm2 do
     confine :osfamily  => 'redhat'
     desc "Manages VXVM volumes"
 
-    commands :vxassist  => 'vxassist',
-             :vxinfo => 'vxinfo',
-             :vxprint => 'vxprint',
-             :vxresize => 'vxresize',
-             :umount  => 'umount',
-             :blkid   => 'blkid',
-             :vxvol   => 'vxvol'
+    commands :vxassist  => '/usr/sbin/vxassist',
+             :vxinfo => '/usr/sbin/vxinfo',
+             :vxprint => '/sbin/vxprint',
+             :vxresize => '/opt/VRTS/bin/vxresize',
+             :umount  => '/bin/umount',
+             :blkid   => '/sbin/blkid',
+             :vxvol   => '/usr/sbin/vxvol'
 
     def create
 		  args = ['-g', @resource[:vxvm2_diskgroup], 'make', @resource[:name]]

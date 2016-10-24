@@ -2,7 +2,7 @@ Puppet::Type.type(:vxvm2_diskgroup).provide :vxvm2 do
     confine :osfamily => 'redhat'
     desc "Manages VXVM diskgroups"
 
-    commands :vxdg      => 'vxdg', :vxdisk => 'vxdisk'
+    commands :vxdg      => '/sbin/vxdg', :vxdisk => '/sbin/vxdisk'
 
     def create
 				#puts "Inside create function of provider vxvm2_diskgroup"
